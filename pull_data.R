@@ -1,0 +1,2 @@
+censusData <- read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data", header=FALSE)
+names(censusData) <- c("age","workclass","fnlwgt","education","educationNum","maritalStatus","occupation","relationship","race","sex","capitalGain","capitalLoss","hoursPerWeek","nativeCountry","incomeExceed50k")

@@ -1,6 +1,5 @@
-## Download data and put into dataframe
-source("pull_data.R")
-
+## Read data from directory
+data <- read.csv("data/aac_shelter_cat_outcome_eng.csv", na.strings="")
 
 ## Cleaning Data
 ## Dropping columns

@@ -20,3 +20,12 @@ data$Spay.Neuter = as.logical(data$Spay.Neuter)
 
 ## Remove * from Names
 data$name <- gsub("\\*","",data$name)
+
+
+## Count Spay/Neuter
+maleFixed <- data[which(data$Spay.Neuter == TRUE & data$sex == 'Male'),]
+femaleFixed <- data[which(data$Spay.Neuter == TRUE & data$sex == 'Female'),]
+with(data, table(sex,Spay.Neuter))
+
+## Adoption Days
+outcomeDays <- table(data$outcome_weekday)

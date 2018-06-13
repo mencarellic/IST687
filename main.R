@@ -33,6 +33,10 @@ data$name <- gsub("\\*","",data$name)
 #### Transforming some nominal variables into binary
 data$adoptBinary <- ifelse(tolower(data$outcome_type)=="adoption",1,0)
 
+### Splitting coat_pattern into binary variables
+newdata <- cbind(data[1:20], sapply(levels(data$coat_pattern),function(x) as.integer(x==data$coat_pattern)), data[22:24])
+
+
 
 ##### Stats
 ## Total rows
@@ -67,10 +71,23 @@ fixedStats <- with(data, table(sex,Spay.Neuter))
 outcomeDays <- as.data.frame(table(data$outcome_weekday))
 colnames(outcomeDays) <- c("Weekday","Count")
 
+## Average outcome hour
+outcomeHour <- mean(data$outcome_hour)
 
+## Average outcome month
+outcomeMonth <- mean(data$outcome_month)
+
+## Average dob month
+dobMonth <- mean(data$dob_month)
+
+## Average number of days between birth and outcome
+mean(round(difftime(data$datetime,data$date_of_birth,units="days"))) ## 534.4272 days
 
 ## Count number of pets named certain names
-head(aggData[order(-aggData$count),],n=10)
+aggNames <- aggregate(data.frame(count=data$name), list(value=data$name),length)
+aggNames.Top10 <- head(aggNames[order(aggNames$count,decreasing=TRUE),],n=10)
 
 length(which(data$name=="Charlie" & data$sex=="Male"))/nrow(data)
 length(which(data$name=="Charlie" & data$sex=="Female"))/nrow(data)
+
+length(which(data$name %in% aggNames.Top10$value & data$sex=="Male"))/nrow(data)

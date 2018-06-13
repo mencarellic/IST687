@@ -1,3 +1,11 @@
+## Load libraries, install if they aren't there
+packageList <- c("ggplot2")
+packageNew <- packageList[!(packageList %in% installed.packages()[,"Package"])]
+if(length(packageNew)) install.packages(packageNew)
+lapply(packageList, library, character.only = TRUE)
+rm(packageNew,packageList)
+
+
 ## Read data from directory
 data <- read.csv("data/aac_shelter_cat_outcome_eng.csv", na.strings="")
 
@@ -22,10 +30,47 @@ data$Spay.Neuter = as.logical(data$Spay.Neuter)
 data$name <- gsub("\\*","",data$name)
 
 
-## Count Spay/Neuter
+#### Transforming some nominal variables into binary
+data$adoptBinary <- ifelse(tolower(data$outcome_type)=="adoption",1,0)
+
+
+##### Stats
+## Total rows
+totalRows <- nrow(data)
+
+## Avg Dropoff Age
+### Possible?
+
+## CFA a factor in adoption?
+cfa.Total <- length(which(data$cfa_breed==TRUE)) ## 1743
+cfa.Adopted <- length(which(data$cfa_breed==TRUE&data$adoptBinary==1)) ## 823
+cfa.NotAdopted <- length(which(data$cfa_breed==TRUE&data$adoptBinary==0)) ## 920
+nonCFA.Adopted <- length(which(data$cfa_breed==FALSE&data$adoptBinary==1)) ## 11909
+nonCFA.NotAdopted <- length(which(data$cfa_breed==FALSE&data$adoptBinary==0)) ## 15766
+
+
+## Adoptions over time (by year)
+aggDate <- aggregate(data$adoptBinary, by=list(data$outcome_year),sum)
+## Seems to be missing 2017 for some reason??
+
+## Avg Adoption Age
+mean(data$outcome_age_.days.) ## 509.4463 Days
+
+## Spay/Neuter
+maleFixedCount <- length(which(data$Spay.Neuter == TRUE & data$sex == 'Male'))
+femaleFixedCount <- length(which(data$Spay.Neuter == TRUE & data$sex == 'Female'))
 maleFixed <- data[which(data$Spay.Neuter == TRUE & data$sex == 'Male'),]
 femaleFixed <- data[which(data$Spay.Neuter == TRUE & data$sex == 'Female'),]
-with(data, table(sex,Spay.Neuter))
+fixedStats <- with(data, table(sex,Spay.Neuter))
 
 ## Adoption Days
-outcomeDays <- table(data$outcome_weekday)
+outcomeDays <- as.data.frame(table(data$outcome_weekday))
+colnames(outcomeDays) <- c("Weekday","Count")
+
+
+
+## Count number of pets named certain names
+head(aggData[order(-aggData$count),],n=10)
+
+length(which(data$name=="Charlie" & data$sex=="Male"))/nrow(data)
+length(which(data$name=="Charlie" & data$sex=="Female"))/nrow(data)

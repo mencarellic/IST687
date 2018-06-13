@@ -91,3 +91,8 @@ length(which(data$name=="Charlie" & data$sex=="Male"))/nrow(data)
 length(which(data$name=="Charlie" & data$sex=="Female"))/nrow(data)
 
 length(which(data$name %in% aggNames.Top10$value & data$sex=="Male"))/nrow(data)
+
+## Number of outcomes per day
+aggOutcomePerDay <- aggregate(data.frame(count=data$datetime), list(value=as.Date(data$datetime)), length)
+aggAdoptionPerDay <- aggregate(data.frame(count=tolower(data$outcome_type)=="adoption"), list(value=as.Date(data$datetime),outcomeType=data$outcome_type), length)
+plot(x=aggAdoptionPerDay$value,y=aggAdoptionPerDay$count)

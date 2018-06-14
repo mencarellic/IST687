@@ -31,7 +31,8 @@ data$name <- gsub("\\*","",data$name)
 
 
 #### Transforming some nominal variables into binary
-data$adoptBinary <- ifelse(tolower(data$outcome_type)=="adoption",1,0)
+data$adoptBinary <- ifelse(tolower(data$outcome_type) %in% c("adoption","transfer","return to owner"),1,0)
+
 data$cfaBinary <- ifelse(data$cfa_breed==TRUE,1,0)
 data$domesticBinary <- ifelse(data$domestic_breed==TRUE,1,0)
 
@@ -107,3 +108,6 @@ length(which(data$name %in% aggNames.Top10$value & data$sex=="Male"))/nrow(data)
 aggOutcomePerDay <- aggregate(data.frame(count=data$datetime), list(value=as.Date(data$datetime)), length)
 aggAdoptionPerDay <- aggregate(data.frame(count=tolower(data$outcome_type)=="adoption"), list(value=as.Date(data$datetime),outcomeType=data$outcome_type), length)
 plot(x=aggAdoptionPerDay$value,y=aggAdoptionPerDay$count)
+
+formula <- as.formula(adoptBinary~ outcome_month + Spay.Neuter + trueAge + outcome_hour + factor(outcome_weekday))
+summary(lm(formula,data=data))

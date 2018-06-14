@@ -1,5 +1,5 @@
 ## Load libraries, install if they aren't there
-packageList <- c("ggplot2")
+packageList <- c("ggplot2","neuralnet")
 packageNew <- packageList[!(packageList %in% installed.packages()[,"Package"])]
 if(length(packageNew)) install.packages(packageNew)
 lapply(packageList, library, character.only = TRUE)
@@ -32,10 +32,18 @@ data$name <- gsub("\\*","",data$name)
 
 #### Transforming some nominal variables into binary
 data$adoptBinary <- ifelse(tolower(data$outcome_type)=="adoption",1,0)
+data$cfaBinary <- ifelse(data$cfa_breed==TRUE,1,0)
+data$domesticBinary <- ifelse(data$domestic_breed==TRUE,1,0)
+
+#### Drop NA adoptionBinary
+data <- data[!is.na(data$adoptBinary),]
 
 ### Splitting coat_pattern into binary variables
 newdata <- cbind(data[1:20], sapply(levels(data$coat_pattern),function(x) as.integer(x==data$coat_pattern)), data[22:24])
 
+
+
+### Basic Regression
 
 
 ##### Stats
@@ -55,7 +63,10 @@ nonCFA.NotAdopted <- length(which(data$cfa_breed==FALSE&data$adoptBinary==0)) ##
 
 ## Adoptions over time (by year)
 aggDate <- aggregate(data$adoptBinary, by=list(data$outcome_year),sum)
-## Seems to be missing 2017 for some reason??
+## Remove 2013 and 2018 (incomplete years of data)
+aggDate <- aggDate[-which(aggDate$Group.1==c(2013,2018)), ]
+## Plotting
+ggplot(data=aggDate,aes(y=x,x=Group.1)) + geom_point() + geom_line()
 
 ## Avg Adoption Age
 mean(data$outcome_age_.days.) ## 509.4463 Days

@@ -1,5 +1,5 @@
 ## Load libraries, install if they aren't there
-packageList <- c("ggplot2","neuralnet","e1071")
+packageList <- c("ggplot2","neuralnet","e1071", "randomForest", "wordcloud", "RColorBrewer")
 packageNew <- packageList[!(packageList %in% installed.packages()[,"Package"])]
 if(length(packageNew)) install.packages(packageNew)
 lapply(packageList, library, character.only = TRUE)
@@ -38,6 +38,16 @@ data$domesticBinary <- ifelse(data$domestic_breed==TRUE,1,0)
 #### Drop NA adoptionBinary and outcome_type
 data <- data[!is.na(data$outcome_type),]
 data <- data[!is.na(data$adoptBinary),]
+
+
+
+## Domestic only outcomes & Sampling
+domesticOnlyData <- subset(data, domestic_breed==TRUE)
+sampleSize <- floor(0.8 * nrow(domesticOnlyData))
+set.seed(100)
+domesticOnlyInd <- sample(seq_len(nrow(domesticOnlyData)), size=sampleSize)
+domesticOnlyTrain <- domesticOnlyData[domesticOnlyInd,]
+domesticOnlyTest <- domesticOnlyData[-domesticOnlyInd,]
 
 
 ##### Stats
@@ -118,6 +128,11 @@ mean(round(difftime(data$datetime,data$date_of_birth,units="days"))) ## 534.4272
 aggNames <- aggregate(data.frame(count=data$name), list(value=data$name),length)
 aggNames.Top10 <- head(aggNames[order(aggNames$count,decreasing=TRUE),],n=10)
 
+## Name word cloud (Top 100)
+aggNames.Sorted <- aggNames[order(-aggNames$count),]
+wcColor <- brewer.pal(9, "BuGn")[-(1:2)]
+wordcloud(aggNames.Sorted$value, aggNames.Sorted$count, min.freq=1, scale=c(8,.4),
+          max.words=Inf, random.order=FALSE, colors=wcColor)
 
 ## Number of outcomes per day
 aggOutcomePerDay <- aggregate(data.frame(count=data$datetime), list(value=as.Date(data$datetime)), length)
@@ -143,3 +158,15 @@ curve(predict(g,data.frame(trueAge=x), type="resp"), add=TRUE)
 
 ## SVM
 summary(svm(basicFormula,data=data))
+
+
+
+## Random forest for domestic only breeds
+formula.RF <- as.formula(outcome_type~ sex + Spay.Neuter + outcome_weekday + outcome_hour)
+fit.RF <- randomForest(formula.RF, domesticOnlyTrain, ntree=500, keep.inbag=TRUE, importance=TRUE)
+pred.RF <- predict(fit.RF, domesticOnlyTest)
+error.RF <- as.data.frame(cbind(domesticOnlyTest$outcome_type,pred.RF))
+error.RF$correct <- ifelse(error.RF$V1==error.RF$pred.RF,TRUE,FALSE)
+sum(error.RF$correct==TRUE)/nrow(error.RF) ## 70.671% correct
+
+

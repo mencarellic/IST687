@@ -51,7 +51,7 @@ data$color2<- gsub("apricot","cream",data$color2)
 data$color2<- gsub("brownmerle","chocolate",data$color2)
 
 #### Transforming some nominal variables into binary
-data$adoptBinary <- ifelse(tolower(data$outcome_type) %in% c("adoption"),1,0)
+data$adoptBinary <- ifelse(tolower(data$outcome_type)=="adoption",1,0)
 data$cfaBinary <- ifelse(data$cfa_breed==TRUE,1,0)
 data$domesticBinary <- ifelse(data$domestic_breed==TRUE,1,0)
 
@@ -177,15 +177,15 @@ pred.RF <- predict(fit.RF, domesticOnlyTest)
 
 error.RF <- as.data.frame(cbind(domesticOnlyTest$outcome_type,pred.RF))
 error.RF$correct <- ifelse(error.RF$V1==error.RF$pred.RF,TRUE,FALSE)
-error.RFPercent <- sum(error.RF$correct==TRUE)/nrow(error.RF) ## 70.671% correct
+error.RFPercent <- sum(error.RF$correct==TRUE)/nrow(error.RF) ## 70.473% correct
 
 ## 2nd model. Takes about 5 minutes to run due to number of variables tried
-formula.RF2 <- as.formula(outcome_type~ sex + Spay.Neuter + date_of_birth + outcome_weekday + outcome_hour + outcome_month + color1)
+formula.RF2 <- as.formula(outcome_type~ sex + Spay.Neuter + color1 + outcome_weekday + outcome_hour +  date_of_birth + outcome_month)
 fit.RF2 <- randomForest(formula.RF2, domesticOnlyTrain, ntree=500, mtry=5)
 importance.RF2 <- importance(fit.RF2)
 pred.RF2 <- predict(fit.RF2, domesticOnlyTest)
 
 error.RF2 <- as.data.frame(cbind(domesticOnlyTest$outcome_type,pred.RF2))
 error.RF2$correct <- ifelse(error.RF2$V1==error.RF2$pred.RF,TRUE,FALSE)
-error.RF2Percent <- sum(error.RF2$correct==TRUE)/nrow(error.RF2) ## 70.671% correct
+error.RF2Percent <- sum(error.RF2$correct==TRUE)/nrow(error.RF2) ## 77.237% correct
 

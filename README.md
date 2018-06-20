@@ -43,3 +43,35 @@ There were three rows with NA for the outcome_type (which feeds adoptBinary). Re
 Modeling will be done on domestic cats which is the largest portion of the data. Here we're creating a subset with records that only have domestic_breed==TRUE. During the color aggreegation, the color1 and color2 fields were converted to chr, we need to transition them back to factors. 
 
 Our train/test data set is an 80/20 split that is randomly sampled. Again results should be reproducible due to setting the seed on line 9
+
+#### Statistical Analysis
+##### Is being a CFA breed a factor in adoption?
+CFA is Cat Fancier's Association. This is an association that recognizes 42 pedigreed breeds
+This code is pretty simple. We gather a lot of totals and then gets the adoption rates for CFA breeds and non-CFA breeds. The info is put into a data frame and plotted it on a bar graph.
+
+##### Adoptions over time by year
+To gather this data, we count the number of outcomes for each year where the outcome is an adoption. We ended up dropping 2013 and 2018 since those were incomplete years. A line plot was chosen to display the data since it is a good fit for time series data.
+
+##### Average age at outcome
+The data provided a column for outcome age (in outcome_age.days.) but these values seem to be off when comparing to manually calculate ages between date of birth and outcome date time. To fix this a new column is created with the value being the difference between those two datetimes.
+
+We choose to aggregate the data using the mean function to get the average age per outcome type and display those values in a bar plot.
+
+##### Spay/Neuter Counts
+We wanted to see if there was any interesting connections between sex and whether the pet was spayed or neutered so we created a stacked bar plot with sex and if they were spayed or neutered.
+
+##### Various Other Stats
+The next several lines of code are pretty simple means of things like outcome_hour, outcome_month, etc.
+
+##### Finding the most frequent names and visualizing it
+Again we use the aggregate function to count the number of occurances for each name. We then create a top 10 list by sorting that list by the count, descending.
+
+Before generating the word cloud, I specify the color palette I want using RColorBrewer.
+
+Generating the wordcloud for the first time was easy enough. Specify the data values and the data counts. That provided a word cloud, but ended up taking a long time to generate and wasn't sorted correctly. To correct this, we specified a minimum frequency for the name and changed the scale so more names would be able to fit on the cloud. We also specified to use as many words as the word cloud could and to use the color palette from RColorBrewer
+
+##### Number of adoptions per day
+Using the aggregate function, we were able to collect the number of adoptions that occurred each day and plotted it using a scatter plot.
+
+#### RandomForest model and prediction
+

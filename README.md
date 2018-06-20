@@ -74,4 +74,10 @@ Generating the wordcloud for the first time was easy enough. Specify the data va
 Using the aggregate function, we were able to collect the number of adoptions that occurred each day and plotted it using a scatter plot.
 
 #### RandomForest model and prediction
+We ran two randomForest models and predictions based on those models. We're trying to predict the outcome_type based on various other data points.
 
+The first model uses sex, Spay.Neuter, outcome_weekday, and outcome_hour with 1000 trees and trying all four variables. This is a pretty basic model that has a OOB error rate of 29.81% The issue with this run is that several of the outcome types that occur less have a 100% class.error
+
+We ran a second model that uses sex, Spay.Neuter, color1, outcome_weekday, outcome_hour, date_of_birth, and outcome_month. We added another variable to try at each split but due to time constraints had to reduce the number of trees. This model had better results but still faced the same issue.
+
+We calculated the error rate of each prediction model by calculating the number of values that are correctly predicted over all of the values in the data set.

@@ -1,5 +1,5 @@
 ## Load libraries, install if they aren't there
-packageList <- c("ggplot2","doParallel", "randomForest", "wordcloud", "RColorBrewer", "foreach")
+packageList <- c("ggplot2", "randomForest", "wordcloud", "RColorBrewer")
 packageNew <- packageList[!(packageList %in% installed.packages()[,"Package"])]
 if(length(packageNew)) install.packages(packageNew)
 lapply(packageList, library, character.only = TRUE)
@@ -29,8 +29,9 @@ data$Spay.Neuter = gsub('Yes','True',data$Spay.Neuter)
 data$Spay.Neuter = gsub('No','False',data$Spay.Neuter)
 data$Spay.Neuter = as.logical(data$Spay.Neuter)
 
-## Remove * from Names
-data$name <- gsub("\\*","",data$name)
+## Remove certain special characters from Names
+data$name <- gsub("\\*|\\!|\\#|\\(|\\)","",data$name)
+data$name <- gsub("\\$","S",data$name)
 
 ## Remove spaces from color1 and color2
 ## Reducing some color combinations

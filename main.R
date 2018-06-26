@@ -54,6 +54,7 @@ data$color2<- gsub("brownmerle","chocolate",data$color2)
 data$adoptBinary <- ifelse(tolower(data$outcome_type)=="adoption",1,0)
 data$cfaBinary <- ifelse(data$cfa_breed==TRUE,1,0)
 data$domesticBinary <- ifelse(data$domestic_breed==TRUE,1,0)
+data$adoptallBinary<- ifelse(tolower(data$outcome_type) %in% c("adoption","transfer","return to owner"),1,0)
 
 #### Drop NA adoptionBinary and outcome_type
 data <- data[!is.na(data$outcome_type),]
@@ -198,12 +199,10 @@ plot.AdoptionsPerDay <- ggplot(data=aggAdoptionPerDay, aes(x=aggAdoptionPerDay$v
 
 
 ## GLM Model
-model <- glm(adoptallBinary~ color1 , family="binomial", data=data)
-summary(model) ## using separate binomial, generalized model still indicates an error in high deviance, and AIC.
+fit.GLM <- glm(adoptallBinary~ color1 , family="binomial", data=data)
 
 glm_regression <- tidy(model)
 glm_regression <- glm_regression[which(tool$p.value<.15), ]
-glm_regression
 
 
 ## Random forest for domestic only breeds

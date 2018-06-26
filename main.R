@@ -1,5 +1,5 @@
 ## Load libraries, install if they aren't there
-packageList <- c("ggplot2", "randomForest", "wordcloud", "RColorBrewer")
+packageList <- c("ggplot2", "randomForest", "wordcloud", "RColorBrewer", "tidyr")
 packageNew <- packageList[!(packageList %in% installed.packages()[,"Package"])]
 if(length(packageNew)) install.packages(packageNew)
 lapply(packageList, library, character.only = TRUE)
@@ -79,9 +79,11 @@ totalRows <- nrow(data)
 ## CFA a factor in adoption?
 cfa.Total <- length(which(data$cfa_breed==TRUE)) ## 1743
 cfa.Adopted <- length(which(data$cfa_breed==TRUE&data$adoptBinary==1)) ## 823
+CFA.Other <- length(which(data$cfa_breed==TRUE&data$outcome_type=="Return to Owner")) ## 
 cfa.NotAdopted <- length(which(data$cfa_breed==TRUE&data$adoptBinary==0)) ## 920
 nonCFA.Total <- length(which(data$cfa_breed==FALSE)) ## 27675
 nonCFA.Adopted <- length(which(data$cfa_breed==FALSE&data$adoptBinary==1)) ## 11909
+nonCFA.Other <- length(which(data$cfa_breed==FALSE&data$outcome_type=="Return to Owner")) ## 
 nonCFA.NotAdopted <- length(which(data$cfa_breed==FALSE&data$adoptBinary==0)) ## 15766
 adoptionRate.CFA <- cfa.Adopted / cfa.Total ## 0.4721744
 adoptionRate.NonCFA <- nonCFA.Adopted / nonCFA.Total ## 0.4303162
@@ -89,12 +91,14 @@ adoptionRate.df <- data.frame(c(adoptionRate.CFA,adoptionRate.NonCFA))
 rownames(adoptionRate.df) <- c("CFA Adoption", "Non CFA Adoption")
 colnames(adoptionRate.df) <- "Rate"
 ## Bar plot
-plot.CFA <- ggplot(adoptionRate.df, aes(x=rownames(adoptionRate.df), y=Rate)) +
+plot.CFA <- ggplot(adoptionRate.df, aes(x=rownames(adoptionRate.df), y=Rate, fill=rownames(adoptionRate.df))) +
   geom_bar(stat="identity") +
   scale_y_continuous(limits= c(0,1)) +
   labs(x="Cat Classification", y="Rate of Adoption") +
   ggtitle("Adoption Rates: CFA vs Non-CFA") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_fill_brewer(palette="Pastel2") +
+  guides(fill=FALSE)
 
 ## Adoptions over time (by year)
 aggDate <- aggregate(data$adoptBinary, by=list(data$outcome_year),sum)
@@ -113,12 +117,14 @@ data$trueAge <- difftime(as.Date(data$datetime), data$date_of_birth, units="days
 mean(data$trueAge)
 mean(data$outcome_age_.days.) ## 509.4463 Days
 aggOutcomesByAge <- aggregate(data$trueAge, by=list(data$outcome_type), mean)
-plot.MeanOutcomeAge <- ggplot(data=aggOutcomesByAge, aes(y=x, x=Group.1)) +
+plot.MeanOutcomeAge <- ggplot(data=aggOutcomesByAge, aes(y=x, x=Group.1, fill=Group.1)) +
   geom_bar(stat="identity") +
   scale_y_continuous() +
   labs(x="Outcome Type", y="Age at Outcome") +
   ggtitle("Average Age by Outcome Type (Days)") +
-  theme(plot.title=element_text(hjust=0.5), axis.text.x=element_text(angle=45, hjust=1))
+  theme(plot.title=element_text(hjust=0.5), axis.text.x=element_text(angle=45, hjust=1)) +
+  scale_fill_brewer(palette="Pastel2") +
+  guides(fill=FALSE)
   
 
 ## Spay/Neuter
@@ -128,7 +134,28 @@ maleFixed <- data[which(data$Spay.Neuter == TRUE & data$sex == 'Male'),]
 femaleFixed <- data[which(data$Spay.Neuter == TRUE & data$sex == 'Female'),]
 fixedStats <- with(data, table(sex,Spay.Neuter))
 plot.FixedStats <- plot(fixedStats, main="Proportion of Spaying & Neutering",
-                        xlab="Sex", ylab="Spayed / Neutered?")
+                        xlab="Sex", ylab="Spayed / Neutered?", col=brewer.pal(8,"Pastel2"))
+
+maleCFATotal <- length(which(data$sex == 'Male' & data$cfaBinary==TRUE))
+maleNonCFATotal <- length(which(data$sex == 'Male' & data$cfaBinary==FALSE))
+femaleCFATotal <- length(which(data$sex == 'Female' & data$cfaBinary==TRUE))
+femaleNonCFATotal <- length(which(data$sex == 'Female' & data$cfaBinary==FALSE))
+maleCFAFixedCount <- length(which(data$Spay.Neuter == TRUE & data$sex == 'Male' & data$cfaBinary==TRUE))
+femaleCFAFixedCount <- length(which(data$Spay.Neuter == TRUE & data$sex == 'Female' & data$cfaBinary==TRUE))
+maleCFANotFixedCount <- length(which(data$Spay.Neuter == FALSE & data$sex == 'Male' & data$cfaBinary==TRUE))
+femaleCFANotFixedCount <- length(which(data$Spay.Neuter == FALSE & data$sex == 'Female' & data$cfaBinary==TRUE))
+maleNonCFAFixedCount <- length(which(data$Spay.Neuter == TRUE & data$sex == 'Male' & data$cfaBinary==FALSE))
+femaleNonCFAFixedCount <- length(which(data$Spay.Neuter == TRUE & data$sex == 'Female' & data$cfaBinary==FALSE))
+maleNonCFANotFixedCount <- length(which(data$Spay.Neuter == FALSE & data$sex == 'Male' & data$cfaBinary==FALSE))
+femaleNonCFANotFixedCount <- length(which(data$Spay.Neuter == FALSE & data$sex == 'Female' & data$cfaBinary==FALSE))
+maleCFAFixedCount/maleCFATotal
+maleNonCFAFixedCount/maleNonCFATotal
+maleCFANotFixedCount/maleCFATotal
+maleNonCFANotFixedCount/maleNonCFATotal
+femaleCFAFixedCount/femaleCFATotal
+femaleNonCFAFixedCount/femaleNonCFATotal
+femaleCFANotFixedCount/femaleCFATotal
+femaleNonCFANotFixedCount/femaleNonCFATotal
 
 
 ## Adoption Days
@@ -155,18 +182,28 @@ aggNames.Top10 <- head(aggNames[order(aggNames$count,decreasing=TRUE),],n=10)
 aggNames.Sorted <- aggNames[order(-aggNames$count),]
 wcColor <- brewer.pal(9, "BuGn")[-(1:2)]
 wc.Names <- wordcloud(aggNames.Sorted$value, aggNames.Sorted$count, min.freq=1, scale=c(8,.4),
-          max.words=Inf, random.order=FALSE, colors=wcColor)
+          max.words=Inf, random.order=FALSE, rot.per=0.35, colors=wcColor)
 
 ## Number of outcomes per day
 aggOutcomePerDay <- aggregate(data.frame(count=data$datetime), list(value=as.Date(data$datetime)), length)
 aggAdoptionPerDay <- aggregate(data.frame(count=tolower(data$outcome_type)=="adoption"), list(value=as.Date(data$datetime),outcomeType=data$outcome_type), length)
-plot.AdoptionsPerDay <- ggplot(data=aggAdoptionPerDay, aes(x=aggAdoptionPerDay$value,y=aggAdoptionPerDay$count)) +
+plot.AdoptionsPerDay <- ggplot(data=aggAdoptionPerDay, aes(x=aggAdoptionPerDay$value,y=aggAdoptionPerDay$count, color=format(as.Date(aggAdoptionPerDay$value, format="%d/%m/%Y"),"%Y",origin="1970-01-01"))) +
   geom_point() + 
   labs(x="Year", y="Adoptions") +
   ggtitle("Adoptions Per Day") +
-  theme(plot.title = element_text(hjust=0.5))
+  theme(plot.title = element_text(hjust=0.5)) +
+  scale_color_brewer(palette="Dark2") +
+  guides(color=FALSE)
 
 
+
+## GLM Model
+model <- glm(adoptallBinary~ color1 , family="binomial", data=data)
+summary(model) ## using separate binomial, generalized model still indicates an error in high deviance, and AIC.
+
+glm_regression <- tidy(model)
+glm_regression <- glm_regression[which(tool$p.value<.15), ]
+glm_regression
 
 
 ## Random forest for domestic only breeds
@@ -188,4 +225,5 @@ pred.RF2 <- predict(fit.RF2, domesticOnlyTest)
 error.RF2 <- as.data.frame(cbind(domesticOnlyTest$outcome_type,pred.RF2))
 error.RF2$correct <- ifelse(error.RF2$V1==error.RF2$pred.RF,TRUE,FALSE)
 error.RF2Percent <- sum(error.RF2$correct==TRUE)/nrow(error.RF2) ## 77.237% correct
+
 
